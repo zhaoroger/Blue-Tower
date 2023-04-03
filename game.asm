@@ -44,16 +44,16 @@ str2:   .asciiz   "\n"
 .text	
 
 .macro xy_coords
-       la $t7, PLAYER_LOC
-       lw $t8, 0($t7)
-       lw $t9, 4($t7)
+       la $s0, PLAYER_LOC
+       lw $s1, 0($s0)
+       lw $s2, 4($s0)
 .end_macro
 
 .macro char_address
        la $t6, BASE_ADDRESS   #t6 = address of framebuffer
        xy_coords
-       sll $t8, $t8, 2        #t8 = 4x
-       sll $t9, $t9, 8        #t9 = 4*64y
+       sll $t8, $s1, 2        #t8 = 4x
+       sll $t9, $s2, 8        #t9 = 4*64y
        add $t7, $t8, $t9      #t7 = offset from framebuffer
        add $t7, $t7, $t6      #t7 = player address
 .end_macro       
@@ -79,7 +79,7 @@ str2:   .asciiz   "\n"
 main:
        jal clear_screen
        li $t2, BASE_ADDRESS # $t0 stores the base address for display
-       li $s0, 0xff0000 # $s0 stores the red colour code  
+       li $s4, 0xff0000 # $s0 stores the red colour code  
        li $t4, 0x000000
        char_address
        sw $s0, 0($t7) # paint the address om $t7 from char_address red
@@ -89,7 +89,7 @@ loop:
        beq $t1, $t0, END    #infinite loop
        jal update_player    
        char_address
-       sw $s0, 0($t7) # paint the first (top-left) unit red.
+       sw $s4, 0($t7) # paint the first (top-left) unit red.
        li $v0, 32
        li $a0, 40
        syscall
@@ -115,31 +115,34 @@ update_player:
        bne $t1, 1, end_player_update
        lw $t0, 4($t0)
        xy_coords
-       
+       char_address
        beq $t0, 119, UP
        beq $t0, 97, LEFT
        beq $t0, 100, RIGHT
        beq $t0, 115, DOWN
        jr $ra
 UP:    
-       addi $t9, $t9, -1
+       addi $s2, $s2, -2
        j update_char_array
 LEFT:    
-       addi $t8, $t8, -1
+       addi $s1, $s1, -2
        j update_char_array     
 RIGHT:    
-       addi $t8, $t8, 1
+       addi $s1, $s1, 2
        j update_char_array 
 DOWN:    
-       addi $t9, $t9, 1
+       addi $s2, $s2, 2
 update_char_array:
-      blt $t8, 0, end_player_update
-      bgt $t8, 63, end_player_update
+      blt $s1, 0, end_player_update
+      bgt $s1, 63, end_player_update
       
-      blt $t9, 0, end_player_update
-      bgt $t9, 63, end_player_update
-      sw $t8, 0($t7)
-      sw $t9, 4($t7)
+      blt $s2, 0, end_player_update
+      bgt $s2, 63, end_player_update
+      
+      
+      sw $zero, 0($t7)
+      sw $s1, 0($s0)
+      sw $s2, 4($s0)
 end_player_update:
       jr $ra
        
