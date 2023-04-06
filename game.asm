@@ -40,7 +40,8 @@
 .eqv    BLUE            0x085eff
 .eqv    WHITE		0xffffff
 .eqv    BEIGE           0xffe7e3
-.eqv    GRAVITY         1
+.eqv    GRAVITY         1     #Its possible to change gravity, but it causes bugs because of how my platform collision works
+                              #that I didn't deal with for the sake of time, so leave it at 1
 .data
 PLAYER_LOC:     .word 0, 2
 VERTICAL:       .word GRAVITY
@@ -156,7 +157,7 @@ UP:
        pop ($ra)
        beq $v0, 1, update_char_array
        la $t3, VERTICAL
-       li $t4, -4
+       li $t4, -5
        sw $t4, 0($t3)
        j update_char_array
 LEFT:    
@@ -234,7 +235,13 @@ platform_check:
        beq $t8, $t6, touching_platform
        lw $t8, -508($a0)
        beq $t8, $t6, touching_platform
-base:  lw $t8, 0($a0)
+base:  
+     #  li $t9, GRAVITY             #attempt to allow gravity to be changed. did not work, but leaving here for future
+     #  addi $t9, $t9, -1
+     #  addi $t9, $t9, GRAVITY
+     #  mul $t9, $t9, 256
+     #  add $a0, $a0, $t9
+       lw $t8, 0($a0)
        beq $t8, $t6, touching_platform
        lw $t8, 4($a0)
        beq $t8, $t6, touching_platform
